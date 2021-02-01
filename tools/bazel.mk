@@ -48,6 +48,8 @@ BUILDER_NAME := gvisor-builder-$(HASH)-$(ARCH)
 DOCKER_NAME := gvisor-bazel-$(HASH)-$(ARCH)
 DOCKER_PRIVILEGED := --privileged
 BAZEL_CACHE := $(HOME)/.cache/bazel/
+GO_BUILD_CACHE := $(HOME)/.cache/go-build
+GOPATH := $(HOME)/go
 GCLOUD_CONFIG := $(HOME)/.config/gcloud/
 DOCKER_SOCKET := /var/run/docker.sock
 DOCKER_CONFIG := /etc/docker
@@ -75,12 +77,17 @@ UID := $(shell id -u ${USER})
 GID := $(shell id -g ${USER})
 USERADD_OPTIONS :=
 DOCKER_RUN_OPTIONS :=
+DOCKER_RUN_OPTIONS += --rm
 DOCKER_RUN_OPTIONS += --user $(UID):$(GID)
 DOCKER_RUN_OPTIONS += --entrypoint ""
 DOCKER_RUN_OPTIONS += --init
 DOCKER_RUN_OPTIONS += -v "$(shell readlink -m $(BAZEL_CACHE)):$(BAZEL_CACHE)"
+DOCKER_RUN_OPTIONS += -v "$(shell readlink -m $(GO_BUILD_CACHE)):$(GO_BUILD_CACHE)"
+# Used by `go mod`.
+DOCKER_RUN_OPTIONS += -v "$(shell readlink -m $(GOPATH)):$(GOPATH)"
 DOCKER_RUN_OPTIONS += -v "$(shell readlink -m $(GCLOUD_CONFIG)):$(GCLOUD_CONFIG)"
 DOCKER_RUN_OPTIONS += -v "/tmp:/tmp"
+DOCKER_EXEC_OPTIONS += --rm
 DOCKER_EXEC_OPTIONS := --user $(UID):$(GID)
 DOCKER_EXEC_OPTIONS += --interactive
 ifeq (true,$(shell test -t 0 && echo true))
@@ -203,8 +210,8 @@ build_paths = \
 clean = $(call header,CLEAN) && $(call wrapper,$(BAZEL) clean)
 build = $(call header,BUILD $(1)) && $(call build_paths,$(1),echo {})
 copy  = $(call header,COPY $(1) $(2)) && $(call build_paths,$(1),cp -fa {} $(2))
-run   = $(call header,RUN $(1) $(2)) && $(call build_paths,$(1),{} $(2))
 sudo  = $(call header,SUDO $(1) $(2)) && $(call build_paths,$(1),sudo -E {} $(2))
+run   = $(call header,RUN $(1) $(2)) && $(call wrapper,$(BAZEL) run ${1} -- $(2))
 test  = $(call header,TEST $(1)) && $(call wrapper,$(BAZEL) test $(TEST_OPTIONS) $(1))
 
 clean: ## Cleans the bazel cache.
