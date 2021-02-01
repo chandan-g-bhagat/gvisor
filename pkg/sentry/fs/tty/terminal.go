@@ -64,13 +64,13 @@ func newTerminal(ctx context.Context, d *dirInodeOperations, n uint32) *Terminal
 
 // setControllingTTY makes tm the controlling terminal of the calling thread
 // group.
-func (tm *Terminal) setControllingTTY(ctx context.Context, args arch.SyscallArguments, isMaster bool) error {
+func (tm *Terminal) setControllingTTY(ctx context.Context, args arch.SyscallArguments, isMaster bool, readable bool) error {
 	task := kernel.TaskFromContext(ctx)
 	if task == nil {
 		panic("setControllingTTY must be called from a task context")
 	}
 
-	return task.ThreadGroup().SetControllingTTY(tm.tty(isMaster), args[2].Int())
+	return task.ThreadGroup().SetControllingTTY(tm.tty(isMaster), args[2].Int() == 1, readable)
 }
 
 // releaseControllingTTY removes tm as the controlling terminal of the calling

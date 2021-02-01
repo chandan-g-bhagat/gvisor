@@ -164,10 +164,10 @@ func (mfd *masterFileDescription) Ioctl(ctx context.Context, io usermem.IO, args
 	case linux.TIOCSCTTY:
 		// Make the given terminal the controlling terminal of the
 		// calling process.
-		return 0, mfd.t.setControllingTTY(ctx, args, true /* isMaster */)
+		return 0, mfd.t.setControllingTTY(ctx, args[2].Int() == 1, true /* isMaster */, mfd.vfsfd.IsReadable())
 	case linux.TIOCNOTTY:
 		// Release this process's controlling terminal.
-		return 0, mfd.t.releaseControllingTTY(ctx, args, true /* isMaster */)
+		return 0, mfd.t.releaseControllingTTY(ctx, true /* isMaster */)
 	case linux.TIOCGPGRP:
 		// Get the foreground process group.
 		return mfd.t.foregroundProcessGroup(ctx, args, true /* isMaster */)

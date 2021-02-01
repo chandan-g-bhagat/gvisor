@@ -24,6 +24,11 @@ namespace testing {
 // Opens the replica end of the passed master as R/W and nonblocking.
 PosixErrorOr<FileDescriptor> OpenReplica(const FileDescriptor& master);
 
+// Identical to the above OpenReplica, but flags are all specified by the
+// caller.
+PosixErrorOr<FileDescriptor> OpenReplica(const FileDescriptor& master,
+                                         int flags);
+
 // Get the number of the replica end of the master.
 PosixErrorOr<int> ReplicaID(const FileDescriptor& master);
 
