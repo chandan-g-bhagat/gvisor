@@ -252,7 +252,7 @@ func (p *Pipe) writeLocked(count int64, f func(safemem.BlockSeq) (uint64, error)
 	avail := p.max - p.size
 	short := false
 	if count > avail {
-		if count <= atomicIOBytes {
+		if avail <= atomicIOBytes {
 			return 0, syserror.ErrWouldBlock
 		}
 		count = avail
